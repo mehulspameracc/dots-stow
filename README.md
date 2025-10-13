@@ -27,3 +27,6 @@ brew install stow
 [] Add Grub configs + scripts for theme 
 [] Add btrfs config docs
 [] Add Scripts/ram-cache 
+
+
+_This repo was created in Oct25_
