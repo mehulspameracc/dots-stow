@@ -14,10 +14,16 @@ brew install stow
 # <pkg_manager> install stow
 ```
 
-## Instructions
+# Instructions
 
 - Clone this git repo to your home folder
 - Run stow on this folder to copy all folders to home with `stow .`
 - Stow can also be used with `stow -t $HOME .` where -t targets the $HOME Directory, and `.` represents the current directory or where dotfiles are located.
 - Run `stow <folder_Name>` to copy only that folder to its location
 - Go through instructions in its actual folder for certain configs, such as kvantum, docker, or fonts.
+
+
+# Things to add
+[] Add Grub configs + scripts for theme 
+[] Add btrfs config docs
+[] Add Scripts/ram-cache 
