@@ -93,11 +93,11 @@ alias brq='brew info '
  
 
 # {% endif %}
-
+/
   
   
 
-# eval "$(zoxide init zsh)"  # zoxide setup
+eval "$(zoxide init zsh)"  # zoxide setup
 
   
   
@@ -128,11 +128,11 @@ export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
 
 # PNPM setup (if js env)
 
-export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-    *":$PNPM_HOME:"*) ;;
-   *) export PATH="$PNPM_HOME:$PATH" ;;
-esac
+# export PNPM_HOME="$HOME/.local/share/pnpm"
+# case ":$PATH:" in
+#     *":$PNPM_HOME:"*) ;;
+#    *) export PATH="$PNPM_HOME:$PATH" ;;
+# esac
 
   
 
@@ -210,17 +210,54 @@ alias lazyvim='NVIM_APPNAME=nvim-lazyvim nvim'
 
 # alias nvchad='NVIM_APPNAME=nvim-nvchad nvim'
 
-# Function to select Neovim distribution with fzf
+# Function to select files/dirs and then Neovim distribution with fzf
 _nvim_selector() {
   local nvim_configs_dir="$HOME/.config"
   local distros=()
+  local files_to_edit=()
+  local item
 
-  # Find nvim* directories, excluding common non-config directories
+  # Step 1: Select files/dirs to edit if any arguments are passed or if explicitly requested
+  # This part uses fzf with file completion to allow tab-completion of paths.
+  if { [[ $# -gt 0 ]] || [[ "$1" == "--select-files" ]]; } then
+    # Use fzf to select from the command line arguments or from all files
+    # The `+m` enables multi-selection.
+    # `--bind=ctrl-space:toggle-all` allows toggling all selections.
+    # `--preview` shows a preview of the selected file.
+    # `--prompt` indicates this is for file selection.
+    
+    # If arguments are passed, use them as the initial list for fzf
+    if [[ $# -gt 0 ]]; then
+        files_to_edit=("$@")
+    else
+        files_to_edit=()
+    fi
+    
+    # Use fzf to select/deselect files
+    # The `--` ensures that options like --select-files are not interpreted by fzf
+    local selected_files=("${(@M)$(print -l "$@[@]" | fzf \
+      --multi \
+      --reverse \
+      --border \
+      --height=40% \
+      --prompt='Files to edit (Tab to select, Enter to confirm): ' \
+      --bind='ctrl-t:toggle-all,ctrl-space:toggle,ctrl-s:toggle-sort' \
+      --preview='([[ -f {} ]] && bat --style=numbers --color=always {} || (echo {} is a directory; ls -l {}))' \
+      --color='hl:#1C1C1C,hl+:#AF5FFF,bg+:#1C1C1C,fg+:#ABE9B4,fg:#86D7FF,prompt:#86D7FF,pointer:#D7AFFF,marker:#ABE9B4,border:#D7AFFF')}" '#q')
+    
+    # Filter out the quit message if fzf is aborted with Esc
+    files_to_edit=(${(@)${(@M)${(@s: :)selected_files}:#\#q}:#[^ ]})
+
+    # If user quits fzf (e.g., presses Esc), do nothing.
+    if [[ ${#selected_files[@]} -eq 0 && "$selected_files[0]" == "#q" ]] || [[ ${#files_to_edit[@]} -eq 0 && "$selected_files" != "" ]]; then
+        return 1
+    fi
+  fi
+
+  # Step 2: Find nvim* directories for distro selection
   for dir in "$nvim_configs_dir"/nvim*; do
     if [[ -d "$dir" ]]; then
-      # Extract distro name (e.g., nvim-nvchad from /home/user/.config/nvim-nvchad)
       local distro_name=$(basename "$dir")
-      # Exclude common non-config nvim directories
       case "$distro_name" in
         nvim-backups|nvim-swaps|nvim-undo|nvim-shada|nvim-sessions|nvim-backup)
           ;;
@@ -233,57 +270,59 @@ _nvim_selector() {
 
   if [[ ${#distros[@]} -eq 0 ]]; then
     echo "No Neovim configurations (nvim*) found in $nvim_configs_dir"
-    # Fallback to default nvim if no distros are found
-    command nvim "$@"
+    # Fallback to default nvim if no distros are found and files were selected
+    if [[ ${#files_to_edit[@]} -gt 0 ]]; then
+      command nvim "${files_to_edit[@]}"
+    elif [[ $# -gt 0 ]]; then # files were passed but none selected, or direct call
+       command nvim "$@"
+    fi
     return $?
   fi
 
-
-  #Use fzf to select a distro
+  # Step 3: Select Neovim distribution
   # fzf options:
-  # --height=40%: Sets the height of the fzf window to 40% of the terminal.
+  # --height=20%: Sets the height of the fzf window to 20% of the terminal.
   # --reverse: Display the list in reverse order (last item first).
   # --border: Draw a border around the fzf window.
   # --info=inline-right: Show info (like prompt, query) on the right side.
-  # --prompt='Neovim Distro> ': Sets the prompt text.
+  # --prompt='Neovim Distro ✨ ': Sets the prompt text.
   # --bind 'ctrl-j:down,ctrl-k:up,ctrl-f:page-down,ctrl-b:page-up': Key bindings.
   # --color: Defines the color scheme.
-  #   hl: Highlighted string
-  #   hl+: Highlighted string (current match)
-  #   fg: Foreground color (text)
-  #   fg+: Foreground color (current match text)
-  #   bg: Background color
-  #   bg+: Background color (current match)
-  #   prompt: Prompt color
-  #   pointer: Pointer to the current selection (e.g., >)
-  #   marker: Multi-select marker color
-  #   spinner: Loading spinner color
-  #   header: Header color
-  #   info: Info line color
-  #   border: Border color
-  #   label: Label color
-  #   query: Query color
-  #   scrollbar: Scrollbar color
   local selected_distro=$(printf '%s\n' "${distros[@]}" | fzf \
     --height=20% \
     --reverse \
     --border \
     --info=inline-right \
-    --prompt='Neovim Distro ✨' \
+    --prompt='Neovim Distro ✨ ' \
     --bind 'ctrl-j:down,ctrl-k:up,ctrl-f:page-down,ctrl-b:page-up' \
     --color='hl:#1C1C1C,hl+:#AF5FFF,bg+:#1C1C1C,fg+:#ABE9B4,fg:#86D7FF,prompt:#86D7FF,pointer:#D7AFFF,marker:#ABE9B4,border:#D7AFFF')
 
-
-
+  # Step 4: Launch nvim with selected distro and files
   if [[ -n "$selected_distro" ]]; then
-    # Launch nvim with the selected NVIM_APPNAME
-    NVIM_APPNAME="$selected_distro" command nvim "$@"
+    if [[ ${#files_to_edit[@]} -gt 0 ]]; then
+      NVIM_APPNAME="$selected_distro" command nvim "${files_to_edit[@]}"
+    else
+      # If no files were pre-selected, launch nvim without arguments.
+      # User can then use :e <file> within nvim.
+      NVIM_APPNAME="$selected_distro" command nvim
+    fi
+  else
+    # User cancelled distro selection, but had selected files
+    if [[ ${#files_to_edit[@]} -gt 0 ]]; then
+        command nvim "${files_to_edit[@]}"
+    fi
   fi
 }
 
 # Set aliases for nvim launchers
 alias nv='_nvim_selector'
 alias nvim='_nvim_selector'
+
+# Completion definition for nvim and nv aliases
+# This tells zsh to use the same completion functions for 'nv' and 'nvim'
+# as it would for the original 'nvim' command.
+compdef _nvim_selector nvim
+compdef _nvim_selector nv
 
   
 

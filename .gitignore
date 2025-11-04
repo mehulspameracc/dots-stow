@@ -1,3 +1,8 @@
 *sync-conflict*
 *.DS_Store
 ._.DS_Store
+.gitattributes
+*fonts.sh
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md
