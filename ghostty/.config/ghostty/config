@@ -45,30 +45,36 @@
 #MT Settings
 # Themes
 theme = Catppuccin Mocha
-background-opacity = 0.85
+background = #030803
+background-opacity = 0.75
 background-blur = true
-
+background-blur-radius = 20
 # Window
 window-padding-x=8
 window-padding-y=5
-window-height = 29
-window-width = 89
+window-height = 50
+window-width = 145
 
 
 # Fonts
-font-size = 12
+font-size = 14
 font-family = "CaskaydiaCove Nerd Font Propo"
 font-family-bold = "CaskaydiaCove Nerd Font Propo"
-font-family-bold-italic = "OperatorMono Nerd Font"
-font-family-italic = "OperatorMono Nerd Font"
+font-family-bold-italic = "OperatorMonoLig Nerd Font Mono"
+font-family-italic = "OperatorMonoLig Nerd Font Mono"
 
 # Terminal
 shell-integration = zsh
-command = /usr/bin/zsh --login --interactive
+command = zsh --login --interactive
+term = xterm-256color
 
-working-directory = /Users/darxps
+working-directory = /Users/darx
 confirm-close-surface = false
 
 
+keybind = global:ctrl+`=toggle_quick_terminal
+
+
 # History
-#history = 50000
+# history = 50000
+

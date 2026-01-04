@@ -30,18 +30,18 @@ background = "0x150b26"
 foreground = "0xecc4f0"
 
 [font]
-size = 12
+size = 14
 
 [font.bold]
 family = "CaskaydiaCove Nerd Font Propo"
 style = "Bold"
 
 [font.bold_italic]
-family = "Operator Mono Lig Nerd Font"
+family = "OperatorMonoLig Nerd Font Mono"
 style = "Bold Italic"
 
 [font.italic]
-family = "Operator Mono Lig Nerd Font"
+family = "OperatorMonoLig Nerd Font Mono"
 style = "Medium Italic"
 
 [font.normal]
